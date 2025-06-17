@@ -254,6 +254,29 @@
       </div>
     </section>
   </div>
+
+  <!-- Toast提示 -->
+  <div
+    v-if="showToast"
+    :class="[
+      'fixed top-20 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300',
+      toastType === 'success' ? 'bg-green-500' : toastType === 'error' ? 'bg-red-500' : 'bg-orange-500',
+      showToast ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+    ]"
+  >
+    <div class="flex items-center">
+      <svg v-if="toastType === 'success'" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <svg v-else-if="toastType === 'error'" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+      <svg v-else class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      {{ toastMessage }}
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -264,32 +287,21 @@ useHead({
   title: '购物车 - 商城学习项目'
 })
 
-// 模拟购物车数据
-const cartItems = ref([
-  {
-    product: products[0],
-    quantity: 1
-  },
-  {
-    product: products[1],
-    quantity: 2
-  }
-])
+// 购物车store
+const cartStore = useCartStore()
 
+// 响应式数据
 const couponCode = ref('')
 const discount = ref(0)
 const shippingFee = ref(10)
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastType = ref<'success' | 'error' | 'warning'>('success')
 
 // 计算属性
-const totalItems = computed(() => {
-  return cartItems.value.reduce((total, item) => total + item.quantity, 0)
-})
-
-const subtotal = computed(() => {
-  return cartItems.value.reduce((total, item) => {
-    return total + (item.product.price * item.quantity)
-  }, 0)
-})
+const cartItems = computed(() => cartStore.items)
+const totalItems = computed(() => cartStore.totalItems)
+const subtotal = computed(() => cartStore.totalPrice)
 
 const freeShipping = computed(() => {
   return subtotal.value >= 99 // 满99免运费
@@ -301,7 +313,7 @@ const totalAmount = computed(() => {
 })
 
 const recommendedProducts = computed(() => {
-  return products.filter(p => !cartItems.value.some(item => item.product.id === p.id)).slice(0, 4)
+  return products.filter(p => !cartItems.value.some((item: any) => item.product.id === p.id)).slice(0, 4)
 })
 
 // 方法
@@ -309,27 +321,68 @@ const goToProduct = (productId: number) => {
   navigateTo(`/products/${productId}`)
 }
 
+const showSuccessToast = (message: string) => {
+  toastMessage.value = message;
+  toastType.value = 'success';
+  showToast.value = true;
+  setTimeout(() => {
+    showToast.value = false;
+  }, 3000);
+}
+
+const showErrorToast = (message: string) => {
+  toastMessage.value = message;
+  toastType.value = 'error';
+  showToast.value = true;
+  setTimeout(() => {
+    showToast.value = false;
+  }, 3000);
+}
+
+const showWarningToast = (message: string) => {
+  toastMessage.value = message;
+  toastType.value = 'warning';
+  showToast.value = true;
+  setTimeout(() => {
+    showToast.value = false;
+  }, 3000);
+}
+
 const updateQuantity = (productId: number, newQuantity: number) => {
-  if (newQuantity <= 0) {
-    removeFromCart(productId)
-    return
-  }
-  
-  const item = cartItems.value.find(item => item.product.id === productId)
-  if (item) {
-    item.quantity = newQuantity
+  try {
+    cartStore.updateQuantity(productId, newQuantity)
+  } catch (error) {
+    if (error instanceof Error) {
+      showErrorToast(error.message);
+    } else {
+      showErrorToast('更新商品数量失败');
+    }
   }
 }
 
 const removeFromCart = (productId: number) => {
-  const index = cartItems.value.findIndex(item => item.product.id === productId)
-  if (index > -1) {
-    cartItems.value.splice(index, 1)
+  try {
+    cartStore.removeFromCart(productId)
+    showSuccessToast('商品已从购物车中移除');
+  } catch (error) {
+    showErrorToast('移除商品失败');
   }
 }
 
 const clearCart = () => {
-  cartItems.value = []
+  if (cartItems.value.length === 0) {
+    showWarningToast('购物车已经是空的');
+    return;
+  }
+  
+  if (confirm('确定要清空购物车吗？')) {
+    try {
+      cartStore.clearCart()
+      showSuccessToast('购物车已清空');
+    } catch (error) {
+      showErrorToast('清空购物车失败');
+    }
+  }
 }
 
 const applyCoupon = () => {
@@ -347,4 +400,9 @@ const goToCheckout = () => {
   // 跳转到结算页面
   navigateTo('/checkout')
 }
+
+// 页面加载时从localStorage恢复购物车数据
+onMounted(() => {
+  cartStore.loadFromStorage()
+})
 </script> 

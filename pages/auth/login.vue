@@ -3,7 +3,7 @@
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="text-center">
         <NuxtLink to="/" class="text-3xl font-bold text-blue-600">
-          商城
+            原创商城
         </NuxtLink>
         <h2 class="mt-6 text-3xl font-bold text-gray-900">
           登录您的账户

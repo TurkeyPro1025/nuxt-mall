@@ -5,7 +5,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div class="text-center">
           <h1 class="text-4xl md:text-6xl font-bold mb-6">
-            欢迎来到我们的商城
+            欢迎来到原创商城
           </h1>
           <p class="text-xl md:text-2xl mb-8 text-blue-100">
             发现优质商品，享受便捷购物体验

@@ -7,7 +7,7 @@
           <!-- Logo -->
           <div class="flex-shrink-0">
             <NuxtLink to="/" class="text-2xl font-bold text-blue-600">
-              商城
+                原创商城
             </NuxtLink>
           </div>
 
@@ -155,7 +155,7 @@
           </div>
         </div>
         <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 商城学习项目. 仅供学习使用.</p>
+          <p>&copy; 原创商城</p>
         </div>
       </div>
     </footer>
@@ -168,13 +168,16 @@
 <script setup lang="ts">
 import { categories } from '~/data/products'
 
+// 购物车store
+const cartStore = useCartStore()
+
 // 状态管理
 const searchQuery = ref('')
 const showCategoryMenu = ref(false)
 const showUserMenu = ref(false)
 
-// 购物车状态（简化版，实际应该使用store）
-const cartItemsCount = ref(0)
+// 计算属性
+const cartItemsCount = computed(() => cartStore.totalItems)
 const isLoggedIn = ref(false)
 
 // 方法
@@ -195,8 +198,7 @@ const toggleUserMenu = () => {
 }
 
 const toggleCart = () => {
-  // 切换购物车侧边栏
-  console.log('Toggle cart')
+  cartStore.toggleCart()
 }
 
 const logout = () => {
@@ -210,6 +212,9 @@ const categoryDropdown = ref<HTMLElement | null>(null)
 const userDropdown = ref<HTMLElement | null>(null)
 
 onMounted(() => {
+  // 从localStorage加载购物车数据
+  cartStore.loadFromStorage()
+  
   const handleClickOutside = (event: Event) => {
     if (categoryDropdown.value && !categoryDropdown.value.contains(event.target as Node)) {
       showCategoryMenu.value = false

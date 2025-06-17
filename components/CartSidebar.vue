@@ -119,41 +119,24 @@
 </template>
 
 <script setup lang="ts">
-import type { CartItem } from '~/types'
+// 购物车store
+const cartStore = useCartStore()
 
-// 模拟购物车数据
-const isOpen = ref(false)
-const cartItems = ref<CartItem[]>([])
+// 计算属性
+const isOpen = computed(() => cartStore.isOpen)
+const cartItems = computed(() => cartStore.items)
+const totalPrice = computed(() => cartStore.totalPrice)
 
-const totalPrice = computed(() => {
-  return cartItems.value.reduce((total: number, item: CartItem) => {
-    return total + (item.product.price * item.quantity)
-  }, 0)
-})
-
+// 方法
 const closeCart = () => {
-  isOpen.value = false
+  cartStore.toggleCart()
 }
 
 const updateQuantity = (productId: number, newQuantity: number) => {
-  if (newQuantity <= 0) {
-    removeFromCart(productId)
-    return
-  }
-  
-  const item = cartItems.value.find((item: CartItem) => item.product.id === productId)
-  if (item) {
-    item.quantity = newQuantity
-  }
+  cartStore.updateQuantity(productId, newQuantity)
 }
 
 const removeFromCart = (productId: number) => {
-  const index = cartItems.value.findIndex((item: CartItem) => item.product.id === productId)
-  if (index > -1) {
-    cartItems.value.splice(index, 1)
-  }
+  cartStore.removeFromCart(productId)
 }
-
-// 监听全局事件来控制侧边栏
-// TODO: 实际应该通过store来管理状态
 </script> 

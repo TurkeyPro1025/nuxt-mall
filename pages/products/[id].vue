@@ -66,7 +66,7 @@
                             ¥{{ product.originalPrice.toLocaleString() }}
                         </span>
                         <span v-if="product.discount" class="bg-red-500 text-white px-2 py-1 rounded text-sm font-medium">
-                            立省¥{{ (product.originalPrice! - product.price).toLocaleString() }}
+                            立省¥{{ product.originalPrice && product.originalPrice > product.price ? (product.originalPrice - product.price).toLocaleString() : '0' }}
                         </span>
                     </div>
                 </div>
@@ -186,6 +186,26 @@
         <p class="text-gray-600 mb-8">抱歉，您查找的商品不存在或已下架</p>
         <NuxtLink to="/products" class="btn-primary"> 返回商品列表 </NuxtLink>
     </div>
+
+    <!-- Toast提示 -->
+    <div
+        v-if="showToast"
+        :class="[
+            'fixed top-20 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300',
+            toastType === 'success' ? 'bg-green-500' : 'bg-red-500',
+            showToast ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+        ]"
+    >
+        <div class="flex items-center">
+            <svg v-if="toastType === 'success'" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <svg v-else class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            {{ toastMessage }}
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -209,10 +229,16 @@ useHead({
     ],
 });
 
+// 购物车store
+const cartStore = useCartStore()
+
 // 响应式数据
 const currentImage = ref(product?.image || "");
 const quantity = ref(1);
 const isInWishlist = ref(false);
+const showToast = ref(false);
+const toastMessage = ref('');
+const toastType = ref<'success' | 'error'>('success');
 
 // 初始化当前图片
 if (product && product.images && product.images.length > 0) {
@@ -244,30 +270,73 @@ const decreaseQuantity = () => {
     }
 };
 
+const showSuccessToast = (message: string) => {
+    toastMessage.value = message;
+    toastType.value = 'success';
+    showToast.value = true;
+    setTimeout(() => {
+        showToast.value = false;
+    }, 3000);
+};
+
+const showErrorToast = (message: string) => {
+    toastMessage.value = message;
+    toastType.value = 'error';
+    showToast.value = true;
+    setTimeout(() => {
+        showToast.value = false;
+    }, 3000);
+};
+
 const addToCart = () => {
     if (product) {
-        console.log(`添加到购物车: ${product.name}, 数量: ${quantity.value}`);
-        // TODO: 实际实现添加到购物车逻辑
+        try {
+            cartStore.addToCart(product, quantity.value);
+            showSuccessToast(`已将 ${quantity.value} 件「${product.name}」加入购物车`);
+            
+            // 重置数量为1
+            quantity.value = 1;
+            
+            // 可选：打开购物车侧边栏
+            cartStore.toggleCart();
+        } catch (error) {
+            console.error('添加到购物车失败:', error);
+            if (error instanceof Error) {
+                showErrorToast(error.message);
+            } else {
+                showErrorToast('添加到购物车失败，请重试');
+            }
+        }
     }
 };
 
 const buyNow = () => {
     if (product) {
-        console.log(`立即购买: ${product.name}, 数量: ${quantity.value}`);
-        // TODO: 实现立即购买逻辑，跳转到结算页面
+        // 先添加到购物车
+        cartStore.addToCart(product, quantity.value);
+        
+        // 跳转到结算页面
+        navigateTo('/cart');
     }
 };
 
 const toggleWishlist = () => {
     isInWishlist.value = !isInWishlist.value;
-    // TODO: 实际实现收藏/取消收藏逻辑
+    
+    if (isInWishlist.value) {
+        showSuccessToast(`已将「${product?.name}」加入收藏`);
+    } else {
+        showSuccessToast(`已将「${product?.name}」移出收藏`);
+    }
+    
+    // TODO: 实际实现收藏/取消收藏逻辑，可能需要用户登录状态
 };
 
 // 如果商品不存在，返回404状态
 if (!product) {
     throw createError({
-        statusCode: 404,
-        statusMessage: "商品未找到",
+        status: 404,
+        statusText: "商品未找到",
     });
 }
 </script>
