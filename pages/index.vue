@@ -135,7 +135,7 @@ import { categories, products, getFeaturedProducts } from '~/data/products'
 
 // 页面头部设置
 useHead({
-  title: '首页 - 商城学习项目',
+  title: '首页',
   meta: [
     { name: 'description', content: '发现优质商品，享受便捷购物体验' }
   ]

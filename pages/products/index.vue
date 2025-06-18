@@ -244,7 +244,7 @@ import { products, categories, searchProducts, getProductsByCategory } from '~/d
 
 // 页面头部设置
 useHead({
-  title: '商品列表 - 商城学习项目'
+  title: '商品列表'
 })
 
 // 响应式数据

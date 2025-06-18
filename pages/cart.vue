@@ -284,7 +284,7 @@ import { products } from '~/data/products'
 
 // 页面头部设置
 useHead({
-  title: '购物车 - 商城学习项目'
+  title: '购物车'
 })
 
 // 购物车store

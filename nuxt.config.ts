@@ -14,11 +14,11 @@ export default defineNuxtConfig({
     modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt"],
     app: {
         head: {
-            title: "商城学习项目",
+            title: "原创商城",
             meta: [
                 { charset: "utf-8" },
                 { name: "viewport", content: "width=device-width, initial-scale=1" },
-                { name: "description", content: "基于Nuxt的商城学习项目" },
+                { name: "description", content: "基于Nuxt的原创商城项目" },
             ],
         },
     },

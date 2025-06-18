@@ -220,7 +220,7 @@ const product = products.find((p) => p.id === productId);
 
 // 页面头部设置
 useHead({
-    title: product ? `${product.name} - 商城学习项目` : "商品未找到 - 商城学习项目",
+    title: product ? `${product.name}` : "商品未找到",
     meta: [
         {
             name: "description",

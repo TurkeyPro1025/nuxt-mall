@@ -190,7 +190,7 @@
 <script setup lang="ts">
 // 页面头部设置
 useHead({
-  title: '登录 - 商城学习项目'
+  title: '登录'
 })
 
 // 表单数据

@@ -294,7 +294,7 @@
 <script setup lang="ts">
 // 页面头部设置
 useHead({
-  title: '注册 - 商城学习项目'
+  title: '注册'
 })
 
 // 表单数据
